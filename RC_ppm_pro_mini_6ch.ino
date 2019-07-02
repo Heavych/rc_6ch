@@ -109,7 +109,7 @@ byte winchFlag = 0;
 
 // byte soundFlag = 0;
 int winchState = LOW;
-const long interval = 400;
+const long interval = 360;
 const long stopLightsInterval = 3000;
 unsigned long previousMillis = 0;
 unsigned long stopLightsPreviousMillis = 0;
@@ -118,13 +118,14 @@ byte stopLightsFlag = 0;
 byte stopLightsTime = 0;
 byte rearLightsFlag = 0;
 byte mode = 1;
+byte alarm_on = 0;
 
 // ********************* LIGHTS END *********************
 
 void setup() {
   digitalWrite(motor_in1, winchState);
   digitalWrite(motor_in2, winchState);
-  //Serial.begin(SERIAL_PORT_SPEED);
+  Serial.begin(SERIAL_PORT_SPEED);
   //Serial.begin(9600);
   altSerial.begin(9600);
   myDFPlayer.begin(altSerial);
@@ -155,10 +156,10 @@ void setup() {
   enableInterrupt(RC_CH5_INPUT, calc_ch5, CHANGE);
   enableInterrupt(RC_CH6_INPUT, calc_ch6, CHANGE);
 
-  //myDFPlayer.setTimeOut(500); //Set serial communictaion time out 500ms
+  //myDFPlayer.setTimeOut(100); //Set serial communictaion time out 500ms
 
   //----Set volume----
-  myDFPlayer.volume(3);  //Set volume value (0~30)
+  myDFPlayer.volume(5);  //Set volume value (0~30)
   // myDFPlayer.volumeUp(); //Volume Up
   // myDFPlayer.volumeDown(); //Volume Down
 
@@ -284,10 +285,17 @@ void loop() {
     }
   }
   //CHANNEL [4] Gear
-  if (rc_values[RC_CH4] >= 1900) {
-    //myDFPlayer.volume(20);
-    //myDFPlayer.playMp3Folder(2);
-    //delay(120);
+  if (rc_values[RC_CH4] >= 1700 && alarm_on == 1) {
+    delay(10);
+    myDFPlayer.playMp3Folder(9); // alarm_off
+    delay(220);
+    alarm_on = 0;
+  }
+  else if (rc_values[RC_CH4] >= 1280 && rc_values[RC_CH4] <= 1320 && alarm_on == 1) {
+    delay(10);
+    myDFPlayer.playMp3Folder(9); // alarm_off
+    delay(220);
+    alarm_on = 0;
   }
   //CHANNEL [5] Winch
   /////////////////////////////////
@@ -322,7 +330,7 @@ void loop() {
   ////////////////////////////////////////
   //******************** SOUND ON ********************
   if (rc_values[RC_CH5] >= 1900 && mode == 2) {
-        randNumber = random(6, 8);
+        randNumber = random(8, 10);
         myDFPlayer.playMp3Folder(randNumber); // honk_2
 
       //lights_off();
@@ -351,12 +359,19 @@ void loop() {
      mode = 2;
    }
    //******************** FAIL SAFE ON *******************
-   if (rc_values[RC_CH4] >= 1450 && rc_values[RC_CH4] <= 1550) { 
-     static unsigned long sTimer = millis();
-     if (millis() - sTimer > 10000) {
-        myDFPlayer.playMp3Folder(6); // idle
+   if (rc_values[RC_CH4] >= 1450 && rc_values[RC_CH4] <= 1550) {
+     digitalWrite(turnLights_l, HIGH);
+     digitalWrite(turnLights_r, HIGH);
+     delay(interval);
+     digitalWrite(turnLights_l, LOW);
+     digitalWrite(turnLights_r, LOW);
+     delay(interval);
+    static unsigned long sTimer = millis();
+     if (millis() - sTimer > 700) {
         sTimer = millis();
+        myDFPlayer.playMp3Folder(6); // Horn 2
       }
+      alarm_on = 1;
    } 
    //******************** FAIL SAFE OFF *******************
 }
@@ -443,11 +458,6 @@ void turnLights_all_off() {
   digitalWrite(turnLights_r, LOW);
   digitalWrite(turnLights_l, LOW);
 }
-
-/* void klakson () {
-  myDFPlayer.playMp3Folder(5);
-  delay(300);
-}*/
 
 void printSerialChannels () {
   Serial.print("CH1:"); Serial.print(rc_values[RC_CH1]); Serial.print(" \t");
