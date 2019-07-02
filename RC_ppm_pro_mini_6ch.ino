@@ -158,7 +158,7 @@ void setup() {
   //myDFPlayer.setTimeOut(500); //Set serial communictaion time out 500ms
 
   //----Set volume----
-  myDFPlayer.volume(5);  //Set volume value (0~30)
+  myDFPlayer.volume(3);  //Set volume value (0~30)
   // myDFPlayer.volumeUp(); //Volume Up
   // myDFPlayer.volumeDown(); //Volume Down
 
@@ -187,7 +187,7 @@ void setup() {
 
 void loop() {
   rc_read_values();
-  printSerialChannels();
+  //printSerialChannels();
   
   // 1000 right - 1500 netral - 2000 left.
 
@@ -246,7 +246,7 @@ void loop() {
     sideLights_off();
     turnFlag = 0;
   }
-  if (rc_values[RC_CH3] > 1000 && rc_values[RC_CH3] < 1400) {
+  else if (rc_values[RC_CH3] > 1000 && rc_values[RC_CH3] < 1400) {
     sideLights_on();
     turnFlag = 0;
   }
@@ -295,11 +295,11 @@ void loop() {
     turnLights_on(turnLights_r);
     turnLights_off(turnLights_l);
   }
-  if (rc_values[RC_CH5] <= 1000 && mode == 3) {
+  else if (rc_values[RC_CH5] <= 1000 && mode == 3) {
     turnLights_on(turnLights_l);
     turnLights_off(turnLights_r);
   }
-  if (turnFlag == 0 && mode == 3) {
+  else if (turnFlag == 0 && mode == 3) {
     turnLights_all_off();
   }
   /////////////////////////////////
@@ -320,7 +320,7 @@ void loop() {
     digitalWrite(motor_in2, HIGH);
   }
   ////////////////////////////////////////
-  //-------------SOUND-ON-----------//
+  //******************** SOUND ON ********************
   if (rc_values[RC_CH5] >= 1900 && mode == 2) {
         randNumber = random(6, 8);
         myDFPlayer.playMp3Folder(randNumber); // honk_2
@@ -332,13 +332,13 @@ void loop() {
     //myDFPlayer.pause();  //pause the mp3
     //lights_on();
   }
-  //-------------HORN-ON-----------//
+  //******************** HORN ON ********************
   if (rc_values[RC_CH5] <= 1000 && mode == 2) {
     myDFPlayer.playMp3Folder(5);
     delay(500);
     //lights_on();
   }
-  ////////////////////////////////////////
+  //******************** HORN OFF ********************
  
   //CHANNEL [6] Mode
   if (rc_values[RC_CH6] >= 1800) { // Winch
@@ -350,10 +350,15 @@ void loop() {
   if (rc_values[RC_CH6] <= 1000) { // Horn
      mode = 2;
    }
-   if (rc_values[RC_CH4] >= 1490 && rc_values[RC_CH4] <= 1530) { // FailSafe
-     turnLightsAll();
-     myDFPlayer.playMp3Folder(7); // ALARM
+   //******************** FAIL SAFE ON *******************
+   if (rc_values[RC_CH4] >= 1450 && rc_values[RC_CH4] <= 1550) { 
+     static unsigned long sTimer = millis();
+     if (millis() - sTimer > 10000) {
+        myDFPlayer.playMp3Folder(6); // idle
+        sTimer = millis();
+      }
    } 
+   //******************** FAIL SAFE OFF *******************
 }
 
 // ******************** FUNCTION *********************
