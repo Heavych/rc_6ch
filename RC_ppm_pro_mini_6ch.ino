@@ -113,6 +113,7 @@ const long interval = 400;
 const long stopLightsInterval = 3000;
 unsigned long previousMillis = 0;
 unsigned long stopLightsPreviousMillis = 0;
+long randNumber;
 byte stopLightsFlag = 0;
 byte stopLightsTime = 0;
 byte rearLightsFlag = 0;
@@ -123,7 +124,8 @@ byte mode = 1;
 void setup() {
   digitalWrite(motor_in1, winchState);
   digitalWrite(motor_in2, winchState);
-  Serial.begin(SERIAL_PORT_SPEED);
+  //Serial.begin(SERIAL_PORT_SPEED);
+  //Serial.begin(9600);
   altSerial.begin(9600);
   myDFPlayer.begin(altSerial);
 
@@ -156,7 +158,7 @@ void setup() {
   //myDFPlayer.setTimeOut(500); //Set serial communictaion time out 500ms
 
   //----Set volume----
-  myDFPlayer.volume(30);  //Set volume value (0~30)
+  myDFPlayer.volume(5);  //Set volume value (0~30)
   // myDFPlayer.volumeUp(); //Volume Up
   // myDFPlayer.volumeDown(); //Volume Down
 
@@ -185,7 +187,7 @@ void setup() {
 
 void loop() {
   rc_read_values();
-  // printSerialChannels();
+  printSerialChannels();
   
   // 1000 right - 1500 netral - 2000 left.
 
@@ -244,7 +246,7 @@ void loop() {
     sideLights_off();
     turnFlag = 0;
   }
-  else if (rc_values[RC_CH3] > 1000 && rc_values[RC_CH3] < 1400) {
+  if (rc_values[RC_CH3] > 1000 && rc_values[RC_CH3] < 1400) {
     sideLights_on();
     turnFlag = 0;
   }
@@ -293,11 +295,11 @@ void loop() {
     turnLights_on(turnLights_r);
     turnLights_off(turnLights_l);
   }
-  else if (rc_values[RC_CH5] <= 1000 && mode == 3) {
+  if (rc_values[RC_CH5] <= 1000 && mode == 3) {
     turnLights_on(turnLights_l);
     turnLights_off(turnLights_r);
   }
-  else if (turnFlag == 0 && mode == 3) {
+  if (turnFlag == 0 && mode == 3) {
     turnLights_all_off();
   }
   /////////////////////////////////
@@ -320,22 +322,20 @@ void loop() {
   ////////////////////////////////////////
   //-------------SOUND-ON-----------//
   if (rc_values[RC_CH5] >= 1900 && mode == 2) {
-     static unsigned long timer = millis();
-     if (millis() - timer > 8000) {
-        timer = millis();
-        myDFPlayer.playMp3Folder(4); // idle
-      }
-    //lights_off();
+        randNumber = random(6, 8);
+        myDFPlayer.playMp3Folder(randNumber); // honk_2
+
+      //lights_off();
   }
   if (rc_values[RC_CH5] >= 1450 && rc_values[RC_CH5] <= 1550 && mode == 2) {
     //myDFPlayer.playMp3Folder(2);
-    myDFPlayer.pause();  //pause the mp3
+    //myDFPlayer.pause();  //pause the mp3
     //lights_on();
   }
   //-------------HORN-ON-----------//
   if (rc_values[RC_CH5] <= 1000 && mode == 2) {
     myDFPlayer.playMp3Folder(5);
-    delay(380);
+    delay(500);
     //lights_on();
   }
   ////////////////////////////////////////
@@ -349,6 +349,10 @@ void loop() {
    }
   if (rc_values[RC_CH6] <= 1000) { // Horn
      mode = 2;
+   }
+   if (rc_values[RC_CH4] >= 1490 && rc_values[RC_CH4] <= 1530) { // FailSafe
+     turnLightsAll();
+     myDFPlayer.playMp3Folder(randNumber); // ALARM
    } 
 }
 
@@ -440,7 +444,7 @@ void turnLights_all_off() {
   delay(300);
 }*/
 
-/* void printSerialChannels () {
+void printSerialChannels () {
   Serial.print("CH1:"); Serial.print(rc_values[RC_CH1]); Serial.print(" \t");
   Serial.print("CH2:"); Serial.print(rc_values[RC_CH2]); Serial.print(" \t");
   Serial.print("CH3:"); Serial.print(rc_values[RC_CH3]); Serial.print(" \t");
@@ -448,5 +452,5 @@ void turnLights_all_off() {
   Serial.print("CH5:"); Serial.print(rc_values[RC_CH5]); Serial.print(" \t");
   Serial.print("CH6:"); Serial.println(rc_values[RC_CH6]);
   delay(300);
-} */
+}
 // ******************** FUNCTION END*********************
