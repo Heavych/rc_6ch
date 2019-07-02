@@ -352,7 +352,7 @@ void loop() {
    }
    if (rc_values[RC_CH4] >= 1490 && rc_values[RC_CH4] <= 1530) { // FailSafe
      turnLightsAll();
-     myDFPlayer.playMp3Folder(randNumber); // ALARM
+     myDFPlayer.playMp3Folder(7); // ALARM
    } 
 }
 
