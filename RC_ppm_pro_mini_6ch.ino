@@ -117,6 +117,8 @@ long randNumber;
 byte stopLightsFlag = 0;
 byte stopLightsTime = 0;
 byte rearLightsFlag = 0;
+byte gearShiftSoundFlag = 0;
+byte shiftState = 0;
 byte mode = 1;
 byte alarm_on = 0;
 
@@ -159,7 +161,7 @@ void setup() {
   //myDFPlayer.setTimeOut(100); //Set serial communictaion time out 500ms
 
   //----Set volume----
-  myDFPlayer.volume(5);  //Set volume value (0~30)
+  myDFPlayer.volume(30);  //Set volume value (0~30)
   // myDFPlayer.volumeUp(); //Volume Up
   // myDFPlayer.volumeDown(); //Volume Down
 
@@ -285,6 +287,22 @@ void loop() {
     }
   }
   //CHANNEL [4] Gear
+  if (rc_values[RC_CH4] >= 1700 && gearShiftSoundFlag == 1) {
+      if (shiftState == 0) {
+         randNumber = random(10, 17);
+         myDFPlayer.playMp3Folder(randNumber); // honk_2
+         delay(10);
+         shiftState = 1;  
+      }
+  }
+  else if (rc_values[RC_CH4] <= 1320 && gearShiftSoundFlag == 1) {
+         if (shiftState == 1) {
+         randNumber = random(10, 17);
+         myDFPlayer.playMp3Folder(randNumber); // honk_2
+         delay(10);
+         shiftState = 0;  
+      }
+  }
   if (rc_values[RC_CH4] >= 1700 && alarm_on == 1) {
     delay(10);
     myDFPlayer.playMp3Folder(9); // alarm_off
@@ -297,6 +315,8 @@ void loop() {
     delay(220);
     alarm_on = 0;
   }
+
+  
   //CHANNEL [5] Winch
   /////////////////////////////////
   if (rc_values[RC_CH5] >= 1800 && mode == 3) {
@@ -330,21 +350,22 @@ void loop() {
   ////////////////////////////////////////
   //******************** SOUND ON ********************
   if (rc_values[RC_CH5] >= 1900 && mode == 2) {
-        randNumber = random(8, 10);
-        myDFPlayer.playMp3Folder(randNumber); // honk_2
-
+        gearShiftSoundFlag = 1;
       //lights_off();
   }
   if (rc_values[RC_CH5] >= 1450 && rc_values[RC_CH5] <= 1550 && mode == 2) {
     //myDFPlayer.playMp3Folder(2);
     //myDFPlayer.pause();  //pause the mp3
     //lights_on();
+    gearShiftSoundFlag = 0;
   }
   //******************** HORN ON ********************
   if (rc_values[RC_CH5] <= 1000 && mode == 2) {
-    myDFPlayer.playMp3Folder(5);
-    delay(500);
-    //lights_on();
+    static unsigned long hTimer = millis();
+     if (millis() - hTimer > 500) {
+        hTimer = millis();
+        myDFPlayer.playMp3Folder(5); // Horn
+      }
   }
   //******************** HORN OFF ********************
  
@@ -367,9 +388,9 @@ void loop() {
      digitalWrite(turnLights_r, LOW);
      delay(interval);
     static unsigned long sTimer = millis();
-     if (millis() - sTimer > 700) {
+     if (millis() - sTimer > 34000) {
         sTimer = millis();
-        myDFPlayer.playMp3Folder(6); // Horn 2
+        myDFPlayer.playMp3Folder(7); // Horn 2
       }
       alarm_on = 1;
    } 
@@ -458,7 +479,11 @@ void turnLights_all_off() {
   digitalWrite(turnLights_r, LOW);
   digitalWrite(turnLights_l, LOW);
 }
-
+void gearShiftSound() {
+  randNumber = random(10, 17);
+  myDFPlayer.playMp3Folder(randNumber); // Kraz_shift_sound (18+)
+  delay(10);
+}
 void printSerialChannels () {
   Serial.print("CH1:"); Serial.print(rc_values[RC_CH1]); Serial.print(" \t");
   Serial.print("CH2:"); Serial.print(rc_values[RC_CH2]); Serial.print(" \t");
