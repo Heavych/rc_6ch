@@ -292,7 +292,8 @@ void loop() {
          randNumber = random(10, 17);
          myDFPlayer.playMp3Folder(randNumber); // honk_2
          delay(10);
-         shiftState = 1;  
+         shiftState = 1;
+         gearShiftSoundFlag = 0;
       }
   }
   else if (rc_values[RC_CH4] <= 1320 && gearShiftSoundFlag == 1) {
@@ -300,7 +301,8 @@ void loop() {
          randNumber = random(10, 17);
          myDFPlayer.playMp3Folder(randNumber); // honk_2
          delay(10);
-         shiftState = 0;  
+         shiftState = 0;
+         gearShiftSoundFlag = 0;
       }
   }
   if (rc_values[RC_CH4] >= 1700 && alarm_on == 1) {
@@ -372,9 +374,11 @@ void loop() {
   //CHANNEL [6] Mode
   if (rc_values[RC_CH6] >= 1800) { // Winch
      mode = 1;
+     gearShiftSoundFlag = 0;
    }
   if (rc_values[RC_CH6] >= 1450 && rc_values[RC_CH6] <= 1550) { // Turn
-     mode = 3; 
+     mode = 3;
+     gearShiftSoundFlag = 0;
    }
   if (rc_values[RC_CH6] <= 1000) { // Horn
      mode = 2;
